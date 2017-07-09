@@ -2212,6 +2212,11 @@ ifneq ($(BLOCK_BASED_OTA),false)
     $(INTERNAL_OTA_PACKAGE_TARGET): block_based := --block
 endif
 
+# Assume non-release recoveries skip signature check
+ifneq ($(TARGET_BUILD_VARIANT),user)
+    extra_ota_args := --no_signing
+endif
+
 $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE)
 	@echo "$(OTA_FROM_TARGET_SCRIPT)" > $(PRODUCT_OUT)/ota_script_path
 	@echo "Package OTA: $@"
@@ -2219,8 +2224,9 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE)
 	   $(OTA_FROM_TARGET_SCRIPT) -v \
 	   $(block_based) \
 	   -p $(HOST_OUT) \
-	   -k $(KEY_CERT_PAIR) \
 	   --backup=$(backuptool) \
+	   -k $(KEY_CERT_PAIR) \
+	   $(extra_ota_args) \
 	   $(if $(OEM_OTA_CONFIG), -o $(OEM_OTA_CONFIG)) \
 	   $(BUILT_TARGET_FILES_PACKAGE) $@
 
